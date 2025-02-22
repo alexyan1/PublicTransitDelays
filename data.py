@@ -3,9 +3,9 @@ import pandas as pd
 
 # Download latest version
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
+csv_path = 'mta_1706.csv'
+df = pd.read_csv(csv_path)
 
-
-print("Path to dataset files:", path)
 """
 df = pd.read_csv('mta_1706.csv', on_bad_lines= 'skip')
 
