@@ -96,7 +96,7 @@ def calculate_delay(row):
     return delay
 
 def preprocess(df):
-    df = df.head(30)
+    df = df.head(100000)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
 
@@ -118,7 +118,7 @@ def preprocess(df):
     # print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
 
     # select features and target
-    x = df[['Hour', 'DistanceFromStop', 'IsWeekend', 'NextStopPointName']]
+    x = df[['Hour', 'DistanceFromStop', 'IsWeekend']]
     y = df['Delay']
 
     return x, y
