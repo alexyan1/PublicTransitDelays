@@ -7,8 +7,6 @@ import kagglehub
 import os
 import pandas as pd
 
-# Split data into training and testing sets (80% training, 20% testing)
-
 # Loading and reading data
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
 
@@ -19,12 +17,12 @@ csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
 
 df = pd.read_csv(csv_file, on_bad_lines='skip')
 
+x, y = preprocess(df)
+# 80% for training, 20% for testing
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-print(preprocess(df))
-"""
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
 
-model = RandomForestRegressor(n_estimators=50, random_state=42)
+model = RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42)
 model.fit(x_train, y_train)
 y_pred = model.predict(x_test)
 
@@ -60,4 +58,3 @@ plt.xlabel('Residual (minutes)')
 plt.ylabel('Frequency')
 plt.title('Histogram of Residuals')
 plt.show()
-"""

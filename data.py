@@ -91,28 +91,31 @@ def calculate_delay(row):
     return delay
 
 def preprocess(df):
+    df = df.sample(n=10000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
-
-    # mkae sure ScheduledArrivalTime is in datetime format
+    
     df['ScheduledArrivalTime'] = pd.to_datetime(df['ScheduledArrivalTime'], errors='coerce')
-
+    
     # apply the delay calculation to each row
     df['Delay'] = df.apply(calculate_delay, axis=1)
-
-    # additional data: Hour, DayOfWeek, and IsWeekend columns
+    
+    # Hour, DayOfWeek, and IsWeekend columns
     df['Hour'] = df['ScheduledArrivalTime'].dt.hour
     df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
-    df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)  # 5, 6 represent Saturday and Sunday
-
-    df = df.dropna(subset=['Delay'])    # drop NA values
-
-    # check the first few rows
-    # print(df.head())
-    # print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
-
-    # select features and target
-    x = df[['Hour', 'DistanceFromStop', 'IsWeekend', 'NextStopPointName']]
+    df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)
+    
+    # drop rows with missing delay values
+    df = df.dropna(subset=['Delay'])
+    
+    # one-hot encode PublishedLineName and NextStopName
+    df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName', 'DayOfWeek'], drop_first=True)
+    
+    # select features and target (include the new encoded columns)
+    features = ['Hour', 'DistanceFromStop'] + \
+               [col for col in df.columns if col.startswith('PublishedLineName_') or col.startswith('NextStopName_')]
+    x = df[features]
     y = df['Delay']
-
+    print(df['Delay'].describe())
+    
     return x, y
