@@ -3,55 +3,31 @@ import os
 import pandas as pd
 
 # adjust invalid hours that are greater than 23
-def adjust_invalid_hour_format(time_str):
-    if pd.isna(time_str) or not isinstance(time_str, str):
-        return None
-
-    # extract time part if input is a datetime string
-    if " " in time_str:
-        _, time_part = time_str.split(" ", 1)
-    else:
-        time_part = time_str
-
-    try:
-        parts = time_part.split(":")
-        hour = int(parts[0])
-        minutes = int(parts[1]) if len(parts) > 1 else 0
-        seconds = int(parts[2]) if len(parts) > 2 else 0
-
-        # wrap hours >=24 to 0-23 without adding days
-        hour = hour % 24
-
-        return pd.Timestamp.time(
-            pd.Timestamp(year=2000, month=1, day=1, hour=hour, minute=minutes, second=seconds)
-        )
-    except:
-        return None
-
 def adjust_times(df):
-    def apply_recorded_date(row):
-        recorded_time = pd.to_datetime(row["RecordedAtTime"], errors="coerce")
-        if pd.isna(recorded_time):
-            return row
+    # convert RecordedAtTime to datetime and extract date
+    df['RecordedAtTime'] = pd.to_datetime(df['RecordedAtTime'], errors='coerce')
+    recorded_dates = df['RecordedAtTime'].dt.normalize()  # Get date part
+    
+    # helper function to process time columns
+    def process_time(col):
+        # extract time components from string
+        time_parts = col.str.extract(r'(\d{1,2}):(\d{1,2}):?(\d{0,2})')
+        
+        # convert to numeric with error handling
+        hours = pd.to_numeric(time_parts[0], errors='coerce') % 24
+        minutes = pd.to_numeric(time_parts[1], errors='coerce').fillna(0)
+        seconds = pd.to_numeric(time_parts[2], errors='coerce').fillna(0)
+        
+        # combine with recorded dates
+        return recorded_dates + pd.to_timedelta(hours, unit='h') \
+                              + pd.to_timedelta(minutes, unit='m') \
+                              + pd.to_timedelta(seconds, unit='s')
 
-        # process ScheduledArrivalTime
-        s_time = adjust_invalid_hour_format(row["ScheduledArrivalTime"])
-        if s_time:
-            # use date from RecordedAtTime
-            row["ScheduledArrivalTime"] = pd.Timestamp.combine(recorded_time.date(), s_time)
-        else:
-            row["ScheduledArrivalTime"] = pd.NaT
-
-        # process ExpectedArrivalTime similarly
-        e_time = adjust_invalid_hour_format(row["ExpectedArrivalTime"])
-        if e_time:
-            row["ExpectedArrivalTime"] = pd.Timestamp.combine(recorded_time.date(), e_time)
-        else:
-            row["ExpectedArrivalTime"] = pd.NaT
-
-        return row
-
-    return df.apply(apply_recorded_date, axis=1)
+    # process both time columns
+    df['ScheduledArrivalTime'] = process_time(df['ScheduledArrivalTime'])
+    df['ExpectedArrivalTime'] = process_time(df['ExpectedArrivalTime'])
+    
+    return df
 
 def calculate_delay(row):
     # clean the ArrivalProximityText to handle whitespace/case issues
