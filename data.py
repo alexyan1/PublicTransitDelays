@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 # Download latest version
-"""
+
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
 # print("Path to dataset files:", path)
 # print("Files in the directory:", os.listdir(path))
@@ -11,7 +11,7 @@ path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
 csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
 
 df = pd.read_csv(csv_file, on_bad_lines='skip')
-"""
+
 # print(df.head())
 print("loading csv")
 df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
