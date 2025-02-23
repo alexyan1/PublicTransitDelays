@@ -4,19 +4,16 @@ import pandas as pd
 
 # Download latest version
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-print("Path to dataset files:", path)
 
+print("Path to dataset files:", path)
 print("Files in the directory:", os.listdir(path))
 
 csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
 
 df = pd.read_csv(csv_file, on_bad_lines='skip')
-df = df.head(30)
 
-print(df.head())
-
-# Drop rows with missing values in the critical columns
-df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
+# df = df.head(30)
+# print(df.head())
 
 # adjust invalid hours that are greater than 23
 def adjust_invalid_hour_format(time_str):
@@ -46,10 +43,6 @@ def adjust_times(df):
 
     return df
 
-df = adjust_times(df)
-
-df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
-
 def calculate_delay(row):
     # determine whether to use RecordedAtTime or ExpectedArrivalTime
     if row['ArrivalProximityText'] == 'at stop':
@@ -65,14 +58,24 @@ def calculate_delay(row):
     delay = (arrival_time - row['ScheduledArrivalTime']).total_seconds() / 60
     return delay
 
-# Apply the delay calculation to each row
-df['Delay'] = df.apply(calculate_delay, axis=1)
+def preprocess(df):
+    df = adjust_times(df)
+    df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
 
-# Additional data: Hour, DayOfWeek, and IsWeekend columns
-df['Hour'] = df['ScheduledArrivalTime'].dt.hour
-df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
-df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)  # 5, 6 represent Saturday and Sunday
+    # Apply the delay calculation to each row
+    df['Delay'] = df.apply(calculate_delay, axis=1)
 
-# Check the first few rows
-print(df.head())
-print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
+    # Additional data: Hour, DayOfWeek, and IsWeekend columns
+    df['Hour'] = df['ScheduledArrivalTime'].dt.hour
+    df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
+    df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)  # 5, 6 represent Saturday and Sunday
+
+    # Check the first few rows
+    print(df.head())
+    print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
+
+    # Select features and target
+    x = df[['Hour', 'DistanceFromStop']]  # Add other relevant features
+    y = df['Delay']
+
+    return x, y
