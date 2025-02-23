@@ -85,7 +85,7 @@ def calculate_delay(row):
 from sklearn.preprocessing import OneHotEncoder
 
 def preprocess(df):
-    df = df.sample(n=1000, random_state=42)
+    df = df.sample(n=10000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
     
@@ -103,13 +103,14 @@ def preprocess(df):
     df = df.dropna(subset=['Delay'])
     
     # one-hot encode PublishedLineName and NextStopName
-    df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName'], drop_first=True)
+    df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName', 'DayOfWeek'], drop_first=True)
     
     # select features and target (include the new encoded columns)
-    features = ['Hour', 'DistanceFromStop', 'IsWeekend'] + \
+    features = ['Hour', 'DistanceFromStop'] + \
                [col for col in df.columns if col.startswith('PublishedLineName_') or col.startswith('NextStopName_')]
     x = df[features]
     y = df['Delay']
+    print(df['Delay'].describe())
     
     return x, y
 

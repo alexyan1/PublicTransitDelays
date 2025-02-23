@@ -21,6 +21,7 @@ x, y = preprocess(df)
 # 80% for training, 20% for testing
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
+
 model = RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42)
 model.fit(x_train, y_train)
 y_pred = model.predict(x_test)
@@ -34,7 +35,6 @@ mse = mean_squared_error(y_test, y_pred)
 print(f"Mean Absolute Error (MAE): {mae}")
 print(f"Mean Squared Error (MSE): {mse}")
 
-"""
 residuals = y_test - y_pred
 plt.figure(figsize=(8, 6))
 plt.scatter(y_test, residuals, alpha=0.5)
@@ -44,11 +44,17 @@ plt.ylabel('Residual (Actual - Predicted)')
 plt.title('Residuals vs Actual Delay')
 plt.show()
 
-"""
+
 plt.figure(figsize=(8, 6))
 plt.scatter(y_test, y_pred, alpha=0.5)
 plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', linewidth=2)
 plt.xlabel('Actual Delay (minutes)')
 plt.ylabel('Predicted Delay (minutes)')
 plt.title('Actual vs Predicted Delay')
+plt.show()
+
+plt.hist(residuals, bins=50)
+plt.xlabel('Residual (minutes)')
+plt.ylabel('Frequency')
+plt.title('Histogram of Residuals')
 plt.show()
