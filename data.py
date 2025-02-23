@@ -3,16 +3,11 @@ import os
 import pandas as pd
 
 # Download latest version
-
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
 # print("Path to dataset files:", path)
 # print("Files in the directory:", os.listdir(path))
 
 csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
-
-df = pd.read_csv(csv_file, on_bad_lines='skip')
-
-# print(df.head())
 print("loading csv")
 df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
 
@@ -96,7 +91,6 @@ def calculate_delay(row):
     return delay
 
 def preprocess(df):
-    df = df.head(100000)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
 
@@ -118,7 +112,7 @@ def preprocess(df):
     # print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
 
     # select features and target
-    x = df[['Hour', 'DistanceFromStop', 'IsWeekend']]
+    x = df[['Hour', 'DistanceFromStop', 'IsWeekend', 'NextStopPointName']]
     y = df['Delay']
 
     return x, y
