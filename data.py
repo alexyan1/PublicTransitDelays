@@ -2,15 +2,6 @@ import kagglehub
 import os
 import pandas as pd
 
-# Download latest version
-path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-# print("Path to dataset files:", path)
-# print("Files in the directory:", os.listdir(path))
-
-csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
-print("loading csv")
-df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
-
 # adjust invalid hours that are greater than 23
 def adjust_invalid_hour_format(time_str):
     if pd.isna(time_str) or not isinstance(time_str, str):
@@ -119,3 +110,13 @@ def preprocess(df):
     print(df['Delay'].describe())
     
     return x, y
+
+if "__name__" == "__main__":
+    # Download latest version
+    path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
+    # print("Path to dataset files:", path)
+    # print("Files in the directory:", os.listdir(path))
+
+    csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
+    print("loading csv")
+    df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
