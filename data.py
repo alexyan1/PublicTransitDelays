@@ -32,36 +32,37 @@ def adjust_invalid_hour_format(time_str):
         return pd.to_datetime(time_str)  # Return as is for valid times
     return pd.NaT  # Return NaT for non-string entries (e.g., NaN)
 
-# Vectorized approach: Find rows where the hour is greater than or equal to 24
 def adjust_times(df):
-    # Set the same date (e.g., 01-01-2000) for both 'ScheduledArrivalTime' and 'RecordedAtTime'
+    # set the same date (e.g., 01-01-2000) for 'ScheduledArrivalTime' and 'RecordedAtTime'
     def normalize_date(time_str):
-        # Convert to datetime
         time_obj = pd.to_datetime(time_str, errors='coerce')
-        # If valid, replace year, month, day to be constant (01-01-2000)
         if pd.notna(time_obj):
             return time_obj.replace(year=2000, month=1, day=1)
-        return pd.NaT
+        return pd.NaT   # invalid date
 
     df['ScheduledArrivalTime'] = df['ScheduledArrivalTime'].apply(normalize_date)
+    df['ExpectedArrivalTime'] = df['ExpectedArrivalTime'].apply(normalize_date)
     df['RecordedAtTime'] = df['RecordedAtTime'].apply(normalize_date)
 
     return df
 
-# Apply the function to adjust the times
 df = adjust_times(df)
 
-# Drop rows with invalid 'ScheduledArrivalTime' or 'RecordedAtTime' after conversion
 df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
 
-# Calculate the delay, taking into account the possibility of a day crossover
 def calculate_delay(row):
-    # If 'RecordedAtTime' is earlier in the day than 'ScheduledArrivalTime', add a full day to RecordedAtTime
-    if row['RecordedAtTime'] < row['ScheduledArrivalTime']:
-        row['RecordedAtTime'] += pd.Timedelta(days=1)
-    
-    # Calculate the delay in minutes
-    delay = (row['RecordedAtTime'] - row['ScheduledArrivalTime']).total_seconds() / 60
+    # determine whether to use RecordedAtTime or ExpectedArrivalTime
+    if row['ArrivalProximityText'] == 'at stop':
+        arrival_time = row['RecordedAtTime']
+    else:
+        arrival_time = row['ExpectedArrivalTime']
+
+    # handle cases where arrival_time appears to be before scheduled time due to crossing midnight
+    if arrival_time < row['ScheduledArrivalTime']:
+        arrival_time += pd.Timedelta(days=1)
+
+    # calculate delay in minutes
+    delay = (arrival_time - row['ScheduledArrivalTime']).total_seconds() / 60
     return delay
 
 # Apply the delay calculation to each row
@@ -74,4 +75,4 @@ df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)  # 5, 6 represent Sat
 
 # Check the first few rows
 print(df.head())
-print(df[['ScheduledArrivalTime', 'RecordedAtTime', 'Delay']].head())
+print(df[['ScheduledArrivalTime', 'ExpectedArrivalTime', 'RecordedAtTime', 'Delay']].head())
