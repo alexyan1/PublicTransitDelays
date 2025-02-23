@@ -10,7 +10,7 @@ from data import preprocess, create_preprocessor
 
 # Load and preprocess data
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-csv_file = os.path.join(path, 'mta_1710.csv')
+csv_file = os.path.join(path, 'mta_1706.csv')
 df = pd.read_csv(csv_file, on_bad_lines='skip')
 
 X, y = preprocess(df)

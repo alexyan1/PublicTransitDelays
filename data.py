@@ -69,20 +69,19 @@ def create_preprocessor():
     ])
 
 def preprocess(df):
-    df = df.sample(10000, random_state=42)
+    df = df.sample(100000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
     
-    # Feature engineering
+    # feature engineering
     df['Delay'] = df.apply(calculate_delay, axis=1)
     df = df.dropna(subset=['Delay'])
     
-    # Create temporal features
+    # create temporal features
     df['Hour'] = df['ScheduledArrivalTime'].dt.hour
     df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
     
     return df[['PublishedLineName', 'NextStopPointName', 'DayOfWeek', 'Hour', 'DistanceFromStop']], df['Delay']
 
 if __name__ == "__main__":
-    # Dataset loading code
     pass

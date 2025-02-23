@@ -9,7 +9,7 @@ app = Flask(__name__)
 pipeline = joblib.load('transport_delay_pipeline.pkl')
 
 def create_input(stop_name, line_name, datetime_str, distance=0.5):
-    """Create input DataFrame matching training features"""
+    # Create input DataFrame matching training features
     dt = datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M')
     return pd.DataFrame([{
         'PublishedLineName': line_name,
@@ -46,7 +46,7 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict_api():
-    """API endpoint for JSON requests"""
+    # API endpoint for JSON requests
     try:
         data = request.json
         input_df = create_input(
