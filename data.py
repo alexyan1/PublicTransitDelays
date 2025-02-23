@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 # Download latest version
+"""
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
 
 print("Path to dataset files:", path)
@@ -11,8 +12,7 @@ print("Files in the directory:", os.listdir(path))
 csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
 
 df = pd.read_csv(csv_file, on_bad_lines='skip')
-
-# df = df.head(30)
+"""
 # print(df.head())
 
 # adjust invalid hours that are greater than 23
@@ -59,6 +59,7 @@ def calculate_delay(row):
     return delay
 
 def preprocess(df):
+    df = df.head(30)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
 
