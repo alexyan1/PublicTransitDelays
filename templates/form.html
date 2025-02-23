@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transit Delay Predictor</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; }
+        button { background: #0066cc; color: white; padding: 10px 15px; border: none; }
+    </style>
+</head>
+<body>
+    <h1>NYC Transit Delay Predictor</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label>Bus Line/Subway Line:</label>
+            <input type="text" name="line" required placeholder="e.g., B12, Q44-SBS">
+        </div>
+        
+        <div class="form-group">
+            <label>Current Stop:</label>
+            <input type="text" name="stop" required placeholder="e.g., LEXINGTON AV/E 42 ST">
+        </div>
+        
+        <div class="form-group">
+            <label>Date & Time:</label>
+            <input type="datetime-local" name="datetime" required>
+        </div>
+        
+        <button type="submit">Predict Delay</button>
+    </form>
+</body>
+</html>

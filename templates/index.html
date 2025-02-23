@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transit Delay Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>New York Transit Delay Predictor</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="stop_name">Current Stop:</label>
+                <input type="text" id="stop_name" name="stop_name" required
+                       placeholder="Enter your current stop (e.g., 'LEXINGTON AV/E 42 ST')">
+            </div>
+            
+            <div class="form-group">
+                <label for="datetime">Date and Time:</label>
+                <input type="datetime-local" id="datetime" name="datetime" required>
+            </div>
+            
+            <button type="submit">Predict Delay</button>
+        </form>
+        
+        {% if prediction %}
+        <div class="prediction-result">
+            <h3>{{ prediction }}</h3>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,6 +1,9 @@
 import kagglehub
 import os
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
 
 # adjust invalid hours that are greater than 23
 def adjust_times(df):
@@ -57,42 +60,29 @@ def calculate_delay(row):
     delay = (arrival_time - scheduled_time).total_seconds() / 60
     return delay
 
+def create_preprocessor():
+    return ColumnTransformer([
+        ('onehot', OneHotEncoder(handle_unknown='ignore'), 
+        ['PublishedLineName', 'NextStopPointName', 'DayOfWeek']
+        ),
+        ('numeric', 'passthrough', ['Hour', 'DistanceFromStop'])
+    ])
+
 def preprocess(df):
-    df = df.sample(n=10000, random_state=42)
+    df = df.sample(10000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
     
-    df['ScheduledArrivalTime'] = pd.to_datetime(df['ScheduledArrivalTime'], errors='coerce')
-    
-    # apply the delay calculation to each row
+    # Feature engineering
     df['Delay'] = df.apply(calculate_delay, axis=1)
-    
-    # Hour, DayOfWeek, and IsWeekend columns
-    df['Hour'] = df['ScheduledArrivalTime'].dt.hour
-    df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
-    df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)
-    
-    # drop rows with missing delay values
     df = df.dropna(subset=['Delay'])
     
-    # one-hot encode PublishedLineName and NextStopName
-    df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName', 'DayOfWeek'], drop_first=True)
+    # Create temporal features
+    df['Hour'] = df['ScheduledArrivalTime'].dt.hour
+    df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
     
-    # select features and target (include the new encoded columns)
-    features = ['Hour', 'DistanceFromStop'] + \
-               [col for col in df.columns if col.startswith('PublishedLineName_') or col.startswith('NextStopName_')]
-    x = df[features]
-    y = df['Delay']
-    print(df['Delay'].describe())
-    
-    return x, y
+    return df[['PublishedLineName', 'NextStopPointName', 'DayOfWeek', 'Hour', 'DistanceFromStop']], df['Delay']
 
-if "__name__" == "__main__":
-    # Download latest version
-    path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-    # print("Path to dataset files:", path)
-    # print("Files in the directory:", os.listdir(path))
-
-    csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
-    print("loading csv")
-    df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
+if __name__ == "__main__":
+    # Dataset loading code
+    pass
