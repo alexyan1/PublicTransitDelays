@@ -73,7 +73,6 @@ def create_preprocessor():
     ])
 
 def preprocess(df):
-    df = df.sample(100000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
     
