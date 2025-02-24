@@ -1,6 +1,10 @@
 import kagglehub
 import os
 import pandas as pd
+import numpy as np
+from scipy.stats import yeojohnson
+
+
 
 # Download latest version
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
@@ -99,14 +103,16 @@ def preprocess(df):
     
     # apply the delay calculation to each row
     df['Delay'] = df.apply(calculate_delay, axis=1)
+    r1, m, r2 = df['Delay'].quantile(q=[0.25, 0.5, 0.75])
+    df = df[np.abs(df['Delay']-m) <= 1.5*(r2 - r1)]
     
+    # drop rows with missing delay values
+    df = df.dropna(subset=['Delay'])
+
     # Hour, DayOfWeek, and IsWeekend columns
     df['Hour'] = df['ScheduledArrivalTime'].dt.hour
     df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
     df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)
-    
-    # drop rows with missing delay values
-    df = df.dropna(subset=['Delay'])
     
     # one-hot encode PublishedLineName and NextStopName
     df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName', 'DayOfWeek'], drop_first=True)
@@ -116,6 +122,5 @@ def preprocess(df):
                [col for col in df.columns if col.startswith('PublishedLineName_') or col.startswith('NextStopName_')]
     x = df[features]
     y = df['Delay']
-    print(df['Delay'].describe())
-    
+
     return x, y
