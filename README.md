@@ -1,6 +1,6 @@
 # NYC Transit Pulse
 
-A machine learning system to predict public transit delays in New York City using historical MTA data. Created for UCSB DataOrbit 2025 in 36 hours.
+A machine learning system to predict public transit delays in New York City using historical MTA data. Created for UCSB Datathon 2025: DataOrbit in 36 hours.
 
 ![Demo Screenshot](static/home.png)
 ![Demo Screenshot](static/result.png)
