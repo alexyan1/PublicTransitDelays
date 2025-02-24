@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+        .result { background: #f0f8ff; padding: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Prediction Result</h1>
+    <div class="result">
+        <h3>For {{ line }} at {{ stop }}</h3>
+        <p>Scheduled Time: {{ time }}</p>
+        <h2>Predicted Delay: {{ prediction }} minutes</h2>
+    </div>
+    <a href="/">← Make another prediction</a>
+</body>
+</html>

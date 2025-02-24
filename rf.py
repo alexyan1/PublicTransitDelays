@@ -7,7 +7,13 @@ import matplotlib.pyplot as plt
 from data import preprocess
 import kagglehub
 import os
+from sklearn.metrics import mean_absolute_error
+from sklearn.pipeline import make_pipeline
+import joblib
 import pandas as pd
+import os
+import kagglehub
+from data import preprocess, create_preprocessor
 import numpy as np
 import statsmodels.api as sm
 from statsmodels.robust.robust_linear_model import RLM
@@ -16,16 +22,28 @@ import matplotlib.pyplot as plt
 
 
 
-# Loading and reading data
+# Load and preprocess data
 path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-
-print("Path to dataset files:", path)
-print("Files in the directory:", os.listdir(path))
-
-csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
-
+csv_file = os.path.join(path, 'mta_1706.csv')
 df = pd.read_csv(csv_file, on_bad_lines='skip')
 
+X, y = preprocess(df)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create and train pipeline
+pipeline = make_pipeline(
+    create_preprocessor(),
+    RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42)
+)
+
+pipeline.fit(X_train, y_train)
+
+# Save entire pipeline
+joblib.dump(pipeline, 'transport_delay_pipeline.pkl')
+
+# Evaluate
+preds = pipeline.predict(X_test)
+print(f"MAE: {mean_absolute_error(y_test, preds):.2f} minutes")
 x, y = preprocess(df)
 X = sm.add_constant(x)
 rlm_model = RLM(y.astype(float), X.astype(float), M = sm.robust.norms.HuberT())

@@ -5,66 +5,36 @@ import numpy as np
 from scipy.stats import yeojohnson
 
 
-
-# Download latest version
-path = kagglehub.dataset_download("stoney71/new-york-city-transport-statistics")
-# print("Path to dataset files:", path)
-# print("Files in the directory:", os.listdir(path))
-
-csv_file = os.path.join(path, 'mta_1706.csv')  # Adjust file name accordingly
-print("loading csv")
-df = pd.read_csv(csv_file, on_bad_lines='skip').head(30)
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
 
 # adjust invalid hours that are greater than 23
-def adjust_invalid_hour_format(time_str):
-    if pd.isna(time_str) or not isinstance(time_str, str):
-        return None
-
-    # extract time part if input is a datetime string
-    if " " in time_str:
-        _, time_part = time_str.split(" ", 1)
-    else:
-        time_part = time_str
-
-    try:
-        parts = time_part.split(":")
-        hour = int(parts[0])
-        minutes = int(parts[1]) if len(parts) > 1 else 0
-        seconds = int(parts[2]) if len(parts) > 2 else 0
-
-        # wrap hours >=24 to 0-23 without adding days
-        hour = hour % 24
-
-        return pd.Timestamp.time(
-            pd.Timestamp(year=2000, month=1, day=1, hour=hour, minute=minutes, second=seconds)
-        )
-    except:
-        return None
-
 def adjust_times(df):
-    def apply_recorded_date(row):
-        recorded_time = pd.to_datetime(row["RecordedAtTime"], errors="coerce")
-        if pd.isna(recorded_time):
-            return row
+    # convert RecordedAtTime to datetime and extract date
+    df['RecordedAtTime'] = pd.to_datetime(df['RecordedAtTime'], errors='coerce')
+    recorded_dates = df['RecordedAtTime'].dt.normalize()  # Get date part
+    
+    # helper function to process time columns
+    def process_time(col):
+        # extract time components from string
+        time_parts = col.str.extract(r'(\d{1,2}):(\d{1,2}):?(\d{0,2})')
+        
+        # convert to numeric with error handling
+        hours = pd.to_numeric(time_parts[0], errors='coerce') % 24
+        minutes = pd.to_numeric(time_parts[1], errors='coerce').fillna(0)
+        seconds = pd.to_numeric(time_parts[2], errors='coerce').fillna(0)
+        
+        # combine with recorded dates
+        return recorded_dates + pd.to_timedelta(hours, unit='h') \
+                              + pd.to_timedelta(minutes, unit='m') \
+                              + pd.to_timedelta(seconds, unit='s')
 
-        # process ScheduledArrivalTime
-        s_time = adjust_invalid_hour_format(row["ScheduledArrivalTime"])
-        if s_time:
-            # use date from RecordedAtTime
-            row["ScheduledArrivalTime"] = pd.Timestamp.combine(recorded_time.date(), s_time)
-        else:
-            row["ScheduledArrivalTime"] = pd.NaT
-
-        # process ExpectedArrivalTime similarly
-        e_time = adjust_invalid_hour_format(row["ExpectedArrivalTime"])
-        if e_time:
-            row["ExpectedArrivalTime"] = pd.Timestamp.combine(recorded_time.date(), e_time)
-        else:
-            row["ExpectedArrivalTime"] = pd.NaT
-
-        return row
-
-    return df.apply(apply_recorded_date, axis=1)
+    # process both time columns
+    df['ScheduledArrivalTime'] = process_time(df['ScheduledArrivalTime'])
+    df['ExpectedArrivalTime'] = process_time(df['ExpectedArrivalTime'])
+    
+    return df
 
 def calculate_delay(row):
     # clean the ArrivalProximityText to handle whitespace/case issues
@@ -94,33 +64,33 @@ def calculate_delay(row):
     delay = (arrival_time - scheduled_time).total_seconds() / 60
     return delay
 
+def create_preprocessor():
+    return ColumnTransformer([
+        ('onehot', OneHotEncoder(handle_unknown='ignore'), 
+        ['PublishedLineName', 'NextStopPointName', 'DayOfWeek']
+        ),
+        ('numeric', 'passthrough', ['Hour', 'DistanceFromStop'])
+    ])
+
 def preprocess(df):
-    df = df.sample(n=10000, random_state=42)
+    df = df.sample(100000, random_state=42)
     df = adjust_times(df)
     df = df.dropna(subset=['ScheduledArrivalTime', 'RecordedAtTime'])
     
-    df['ScheduledArrivalTime'] = pd.to_datetime(df['ScheduledArrivalTime'], errors='coerce')
-    
-    # apply the delay calculation to each row
+    # feature engineering
     df['Delay'] = df.apply(calculate_delay, axis=1)
+    df = df.dropna(subset=['Delay'])
     r1, m, r2 = df['Delay'].quantile(q=[0.25, 0.5, 0.75])
     df = df[np.abs(df['Delay']-m) <= 1.5*(r2 - r1)]
     
     # drop rows with missing delay values
     df = df.dropna(subset=['Delay'])
 
-    # Hour, DayOfWeek, and IsWeekend columns
+    # create temporal features
     df['Hour'] = df['ScheduledArrivalTime'].dt.hour
     df['DayOfWeek'] = df['ScheduledArrivalTime'].dt.dayofweek
-    df['IsWeekend'] = df['DayOfWeek'].isin([5, 6]).astype(int)
     
-    # one-hot encode PublishedLineName and NextStopName
-    df = pd.get_dummies(df, columns=['PublishedLineName', 'NextStopPointName', 'DayOfWeek'], drop_first=True)
-    
-    # select features and target (include the new encoded columns)
-    features = ['Hour', 'DistanceFromStop'] + \
-               [col for col in df.columns if col.startswith('PublishedLineName_') or col.startswith('NextStopName_')]
-    x = df[features]
-    y = df['Delay']
+    return df[['PublishedLineName', 'NextStopPointName', 'DayOfWeek', 'Hour', 'DistanceFromStop']], df['Delay']
 
-    return x, y
+if __name__ == "__main__":
+    pass
