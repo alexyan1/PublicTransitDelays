@@ -2,7 +2,8 @@
 
 A machine learning system to predict public transit delays in New York City using historical MTA data. Created for UCSB DataOrbit 2025 in 36 hours.
 
-![Demo Screenshot](static/image.png)
+![Demo Screenshot](static/home.png)
+![Demo Screenshot](static/result.png)
 
 ## Features
 
