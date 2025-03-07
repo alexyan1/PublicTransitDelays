@@ -24,5 +24,5 @@ A machine learning system to predict public transit delays in New York City usin
 
 1. **Clone Repository**
 ```bash
-git clone https://github.com/yourusername/nyc-transit-delay-predictor.git
+git clone https://github.com/alexyan1/nyc-transit-delay-predictor.git
 cd nyc-transit-delay-predictor
