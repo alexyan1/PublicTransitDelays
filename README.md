@@ -1,6 +1,6 @@
 # NYC Transit Pulse
 
-Predicting NYC public transit delays using machine learning.
+*Predicting NYC public transit delays using machine learning.*
 
 Developed in 36 hours at the **UCSB Datathon 2025: DataOrbit**.
 
@@ -31,7 +31,7 @@ git clone https://github.com/alexyan1/nyc-transit-delay-predictor.git
 cd nyc-transit-delay-predictor
 ```
 
-2. **Create a virtual environment (optional)
+2. **Create a virtual environment** (optional)
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -49,19 +49,20 @@ python app.py
 
 ## Dataset
 Historical MTA delay and schedule data was sourced from:
-- Kaggle: [New York City Bus Data](https://www.kaggle.com/datasets/stoney71/new-york-city-transport-statistics?)
+- Kaggle: [New York City Bus Data](https://www.kaggle.com/datasets/stoney71/new-york-city-transport-statistics)
 
 ## Model Details
-The system uses:
+- Uses Huber Regression
 - Time-series features (day, hour, weekday/weekend)
-- Huber Regression model
 - Evaluation metrics: Accuracy, MAE
 - The pre-trained model is in delay_pipeline.pkl
 - It can be trained in the file `rlm.py`
 
 ## API Endpoints
 
+POST `/predict`
 Example:
+
 ```
 curl -X POST http://localhost:5000/predict \
      -H "Content-Type: application/json" \
