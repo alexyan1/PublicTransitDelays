@@ -62,7 +62,7 @@ The system uses:
 ## API Endpoints
 
 Example:
-`
+```
 curl -X POST http://localhost:5000/predict \
      -H "Content-Type: application/json" \
      -d '{
@@ -70,17 +70,17 @@ curl -X POST http://localhost:5000/predict \
            "line": "M4",
            "datetime": "2025-04-23T08:30"
          }'
-`
+```
 
 Response:
-`
+```
 {
   "stop": "5th Ave",
   "line": "M4",
   "predicted_delay": 5.2,
   "units": "minutes"
 }
-`
+```
 
 ## Screenshots
 ![Home Page Screenshot](static/home.png)
