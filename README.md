@@ -49,7 +49,7 @@ python app.py
 
 ## Dataset
 Historical MTA delay and schedule data was sourced from:
-- Kaggle: [New York City Bus Data]([url](https://www.kaggle.com/datasets/stoney71/new-york-city-transport-statistics?))
+- Kaggle: [New York City Bus Data](https://www.kaggle.com/datasets/stoney71/new-york-city-transport-statistics?)
 
 ## Model Details
 The system uses:
