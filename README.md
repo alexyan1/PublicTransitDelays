@@ -86,3 +86,8 @@ Response:
 ## Screenshots
 ![Home Page Screenshot](static/home.png)
 ![Result Screenshot](static/result.png)
+
+## Contributors
+
+- [Alex Yan](https://github.com/alexyan1)
+- [Nathan Ngo](https://github.com/ngostream)
