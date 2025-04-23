@@ -60,6 +60,7 @@ The system uses:
 - It can be trained in the file `rlm.py`
 
 ## API Endpoints
+
 Example:
 `
 curl -X POST http://localhost:5000/predict \
@@ -70,6 +71,7 @@ curl -X POST http://localhost:5000/predict \
            "datetime": "2025-04-23T08:30"
          }'
 `
+
 Response:
 `
 {
